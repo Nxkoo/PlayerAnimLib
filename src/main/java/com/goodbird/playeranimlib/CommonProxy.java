@@ -1,5 +1,6 @@
 package com.goodbird.playeranimlib;
 
+import com.goodbird.playeranimlib.common.commands.CommandSetAnimation;
 import com.goodbird.playeranimlib.common.handler.CommonEventHandler;
 import com.goodbird.playeranimlib.common.network.NetworkWrapper;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -21,5 +22,7 @@ public class CommonProxy {
 
     public void postInit(FMLPostInitializationEvent event) {}
 
-    public void serverStarting(FMLServerStartingEvent event) {}
+    public void serverStarting(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandSetAnimation());
+    }
 }

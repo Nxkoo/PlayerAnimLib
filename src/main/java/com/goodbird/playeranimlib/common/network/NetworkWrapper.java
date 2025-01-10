@@ -14,6 +14,7 @@ public class NetworkWrapper {
 
     public static void init() {
         wrapper.registerMessage(SyncExtPlayer.class, SyncExtPlayer.class, 0, Side.CLIENT);
+        wrapper.registerMessage(SyncPlayerAnimation.class, SyncPlayerAnimation.class, 1, Side.CLIENT);
     }
 
     public static void sendToPlayer(IMessage message, EntityPlayer player) {

@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.7.11",
   "package": "com.goodbird.playeranimlib.mixin.impl",
-  "refmap": "mixins.cnpcplusgecko.refmap.json",
+  "refmap": "mixins.playeranimlib.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
