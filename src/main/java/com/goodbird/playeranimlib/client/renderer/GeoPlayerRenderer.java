@@ -1,7 +1,10 @@
 package com.goodbird.playeranimlib.client.renderer;
 
 import com.goodbird.playeranimlib.client.model.GeoPlayerModel;
+import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -11,42 +14,103 @@ import software.bernie.geckolib3.core.IAnimatableModel;
 import software.bernie.geckolib3.core.controller.AnimationController;
 import software.bernie.geckolib3.core.util.Color;
 import software.bernie.geckolib3.geo.render.built.GeoBone;
+import software.bernie.geckolib3.geo.render.built.GeoCube;
 import software.bernie.geckolib3.geo.render.built.GeoModel;
 import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 public class GeoPlayerRenderer extends GeoEntityRenderer {
     public static GeoPlayerRenderer INSTANCE = new GeoPlayerRenderer();
+    private final ModelBiped modelBiped = new ModelBiped();
 
-    public GeoPlayerRenderer() {
+    public GeoPlayerRenderer()
+    {
         super(new GeoPlayerModel());
     }
 
     @Override
-    public Color getRenderColor(Object obj, float partialTicks) {
+    public Color getRenderColor( Object obj, float partialTicks )
+    {
         EntityPlayer animatable = (EntityPlayer) obj;
         return animatable.hurtTime <= 0 && animatable.deathTime <= 0 ? Color.ofRGBA(255, 255, 255, 255) : Color.ofRGBA(255, 153, 153, 255);
     }
 
     @Override
-    public boolean isBoneRenderOverriden(Object animatable, GeoBone bone) {
+    public void doRender( Entity entity, double x, double y, double z, float entityYaw, float partialTicks )
+    {
+        if ( entity instanceof EntityPlayer ) {
+            EntityPlayer player = (EntityPlayer) entity;
+            modelBiped.onGround = player.swingProgress;
+            modelBiped.isRiding = player.isRiding();
+            modelBiped.setRotationAngles(
+                player.limbSwing,
+                player.limbSwingAmount,
+                player.ticksExisted + partialTicks,
+                player.rotationYawHead - player.prevRotationYawHead,
+                player.rotationPitch,
+                0.0625F,
+                entity
+            );
+        }
+        super.doRender(entity, x, y, z, entityYaw, partialTicks);
+    }
+
+    @Override
+    public boolean isBoneRenderOverriden( Object animatable, GeoBone bone )
+    {
         return bone.getName().equals("held_item") || bone.getName().equals("left_held_item");
     }
 
-    public void renderAfter(GeoModel model, Object animatable, float ticks, float red, float green, float blue, float alpha) {
+    public void renderAfter( GeoModel model, Object animatable, float ticks, float red, float green, float blue,
+                             float alpha )
+    {
         super.renderAfter(model, animatable, ticks, red, green, blue, alpha);
-        if (model.getBone("held_item").isPresent() && ((EntityPlayer)animatable).getHeldItem() != null) {
+        if ( model.getBone("held_item").isPresent() && ((EntityPlayer) animatable).getHeldItem() != null ) {
             GeoBone bone = model.getBone("held_item").get();
-            this.renderItem(((EntityPlayer)animatable), ((EntityPlayer)animatable).getHeldItem(), bone);
+            this.renderItem(((EntityPlayer) animatable), ((EntityPlayer) animatable).getHeldItem(), bone);
         }
+
+        model.getBone("main").ifPresent(geoBone -> {
+            for ( GeoBone bone : geoBone.childBones ) {
+                String boneName = bone.getName();
+                if ( boneName.equals("right_leg") ) {
+                    copyAngles(modelBiped.bipedRightLeg, bone);
+                } else if ( boneName.equals("left_leg") ) {
+                    copyAngles(modelBiped.bipedLeftLeg, bone);
+                }
+            }
+        });
+        model.getBone("bodypart").ifPresent(bodyBone -> {
+            for ( GeoBone bone : bodyBone.childBones ) {
+                String boneName = bone.getName();
+                switch ( boneName ) {
+                    case "head":
+                        copyAngles(modelBiped.bipedHead, bone);
+                        break;
+                    case "right_arm":
+                        copyAngles(modelBiped.bipedRightArm, bone);
+                        break;
+                    case "left_arm":
+                        copyAngles(modelBiped.bipedLeftArm, bone);
+                        break;
+                }
+        }});
     }
 
-    public void renderItem(EntityPlayer animatable, ItemStack stack, GeoBone locator) {
+    private void copyAngles( ModelRenderer modelRenderer, GeoBone bone )
+    {
+        bone.setRotationX(modelRenderer.rotateAngleX);
+        bone.setRotationY(modelRenderer.rotateAngleY);
+        bone.setRotationZ(modelRenderer.rotateAngleZ);
+    }
+
+    public void renderItem( EntityPlayer animatable, ItemStack stack, GeoBone locator )
+    {
         GL11.glPushMatrix();
         float scale = 0.5F;
         GL11.glScaled(scale, scale, scale);
         GeoBone[] bonePath = this.getPathFromRoot(locator);
 
-        for (GeoBone b : bonePath) {
+        for ( GeoBone b : bonePath ) {
             GL11.glTranslatef(b.getPositionX() / (16.0F * scale), b.getPositionY() / (16.0F * scale), b.getPositionZ() / (16.0F * scale));
             GL11.glTranslatef(b.getPivotX() / (16.0F * scale), b.getPivotY() / (16.0F * scale), b.getPivotZ() / (16.0F * scale));
             GL11.glRotated((double) b.getRotationZ() / Math.PI * 180.0, 0.0, 0.0, 1.0);
@@ -63,8 +127,8 @@ public class GeoPlayerRenderer extends GeoEntityRenderer {
     }
 
     static {
-        AnimationController.addModelFetcher((object) -> {
-            return object instanceof EntityPlayer ? (IAnimatableModel)INSTANCE.getGeoModelProvider() : null;
+        AnimationController.addModelFetcher(( object ) -> {
+            return object instanceof EntityPlayer ? (IAnimatableModel) INSTANCE.getGeoModelProvider() : null;
         });
     }
 }

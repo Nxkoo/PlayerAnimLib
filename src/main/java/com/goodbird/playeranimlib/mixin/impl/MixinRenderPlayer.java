@@ -19,10 +19,10 @@ public abstract class MixinRenderPlayer extends RendererLivingEntity {
     }
 
     @Inject(method = "Lnet/minecraft/client/renderer/entity/RenderPlayer;doRender(Lnet/minecraft/client/entity/AbstractClientPlayer;DDDFF)V", at = @At("HEAD"), cancellable = true)
-    public void doRender(AbstractClientPlayer p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_, CallbackInfo info) {
-        if(p_76986_1_!=null) {
+    public void doRender(AbstractClientPlayer player, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo info) {
+        if(player != null) {
             info.cancel();
-            GeoPlayerRenderer.INSTANCE.doRender((Entity) p_76986_1_, p_76986_2_, p_76986_4_ - 1.5, p_76986_6_, p_76986_8_, p_76986_9_);
+            GeoPlayerRenderer.INSTANCE.doRender((Entity) player, x, y - 1.5, z, entityYaw, partialTicks);
         }
     }
 }

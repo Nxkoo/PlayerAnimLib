@@ -25,7 +25,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase implements IAni
     private final AnimationFactory factory = new AnimationFactory(this);
 
     @Unique
-    private String currentAnimation = "idle";
+    private String currentAnimation;
 
     @Unique
     private ILoopType.EDefaultLoopTypes currentLoopType = ILoopType.EDefaultLoopTypes.LOOP;
@@ -41,21 +41,23 @@ public abstract class MixinEntityPlayer extends EntityLivingBase implements IAni
 
         if ( currentAnimation != null ) {
             event.getController().setAnimation(new AnimationBuilder().addAnimation(currentAnimation, currentLoopType));
-//            return PlayState.CONTINUE;
+        } else {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("idle", true));
+            return PlayState.CONTINUE;
         }
 
 //        if ( !player.onGround ) {
 //            setCurrentAnimation("idle");
 //            return PlayState.CONTINUE;
 //        }
-        if ( event.isMoving() ) {
-            setCurrentAnimation("walk2");
-        } else {
-            setCurrentAnimation("idle");
-        }
-        if ( player.isSprinting() ) {
-            setCurrentAnimation("run");
-        }
+//        if ( event.isMoving() ) {
+//            setCurrentAnimation("walk2");
+//        } else {
+//            setCurrentAnimation("idle");
+//        }
+//        if ( player.isSprinting() ) {
+//            setCurrentAnimation("run");
+//        }
 
         return PlayState.CONTINUE;
     }
